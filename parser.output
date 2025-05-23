@@ -1,0 +1,1190 @@
+Terminals unused in grammar
+
+   ERRO
+
+
+Grammar
+
+    0 $accept: programa $end
+
+    1 programa: declaracao_lista
+
+    2 declaracao_lista: declaracao_lista declaracao
+    3                 | declaracao
+
+    4 declaracao: var_declaracao
+    5           | fun_declaracao
+
+    6 var_declaracao: tipo_especificador ID PEV
+    7               | tipo_especificador ID ACO NUM FCO PEV
+
+    8 tipo_especificador: INT
+    9                   | VOID
+
+   10 fun_declaracao: tipo_especificador ID APR params FPR composto_declaracao
+
+   11 params: param_lista
+   12       | VOID
+
+   13 param_lista: param_lista VIR param
+   14            | param
+
+   15 param: tipo_especificador ID
+   16      | tipo_especificador ID ACO FCO
+
+   17 composto_declaracao: ACH local_declaracoes statement_lista FCH
+
+   18 local_declaracoes: local_declaracoes var_declaracao
+   19                  | /* empty */
+
+   20 statement_lista: statement_lista statement
+   21                | /* empty */
+
+   22 statement: expressao_declaracao
+   23          | composto_declaracao
+   24          | selecao_declaracao
+   25          | iteracao_declaracao
+   26          | retorno_declaracao
+
+   27 expressao_declaracao: expressao PEV
+   28                     | PEV
+
+   29 selecao_declaracao: IF APR expressao FPR statement
+   30                   | IF APR expressao FPR statement ELSE statement
+
+   31 iteracao_declaracao: WHILE APR expressao FPR statement
+
+   32 retorno_declaracao: RETURN PEV
+   33                   | RETURN expressao PEV
+
+   34 expressao: var ATR expressao
+   35          | simples_expressao
+
+   36 var: ID
+   37    | ID ACO expressao FCO
+
+   38 simples_expressao: soma_expressao relacional soma_expressao
+   39                  | soma_expressao
+
+   40 relacional: MEN
+   41           | MEI
+   42           | MAR
+   43           | MAI
+   44           | IGU
+   45           | DIF
+
+   46 soma_expressao: soma_expressao SOM termo
+   47               | soma_expressao SUB termo
+   48               | termo
+
+   49 termo: termo MUL fator
+   50      | termo DIV fator
+   51      | fator
+
+   52 fator: NUM
+   53      | var
+   54      | APR expressao FPR
+   55      | ID APR args FPR
+
+   56 args: arg_lista
+   57     | /* empty */
+
+   58 arg_lista: arg_lista VIR expressao
+   59          | expressao
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+ID (258) 6 7 10 15 16 36 37 55
+NUM (259) 7 52
+INT (260) 8
+VOID (261) 9 12
+WHILE (262) 31
+RETURN (263) 32 33
+PEV (264) 6 7 27 28 32 33
+VIR (265) 13 58
+ERRO (266)
+SUB (267) 47
+SOM (268) 46
+DIV (269) 50
+MUL (270) 49
+FCH (271) 17
+ACH (272) 17
+FCO (273) 7 16 37
+ACO (274) 7 16 37
+FPR (275) 10 29 30 31 54 55
+APR (276) 10 29 30 31 54 55
+ELSE (277) 30
+IF (278) 29 30
+ATR (279) 34
+DIF (280) 45
+IGU (281) 44
+MAI (282) 43
+MAR (283) 42
+MEI (284) 41
+MEN (285) 40
+
+
+Nonterminals, with rules where they appear
+
+$accept (31)
+    on left: 0
+programa (32)
+    on left: 1, on right: 0
+declaracao_lista (33)
+    on left: 2 3, on right: 1 2
+declaracao (34)
+    on left: 4 5, on right: 2 3
+var_declaracao (35)
+    on left: 6 7, on right: 4 18
+tipo_especificador (36)
+    on left: 8 9, on right: 6 7 10 15 16
+fun_declaracao (37)
+    on left: 10, on right: 5
+params (38)
+    on left: 11 12, on right: 10
+param_lista (39)
+    on left: 13 14, on right: 11 13
+param (40)
+    on left: 15 16, on right: 13 14
+composto_declaracao (41)
+    on left: 17, on right: 10 23
+local_declaracoes (42)
+    on left: 18 19, on right: 17 18
+statement_lista (43)
+    on left: 20 21, on right: 17 20
+statement (44)
+    on left: 22 23 24 25 26, on right: 20 29 30 31
+expressao_declaracao (45)
+    on left: 27 28, on right: 22
+selecao_declaracao (46)
+    on left: 29 30, on right: 24
+iteracao_declaracao (47)
+    on left: 31, on right: 25
+retorno_declaracao (48)
+    on left: 32 33, on right: 26
+expressao (49)
+    on left: 34 35, on right: 27 29 30 31 33 34 37 54 58 59
+var (50)
+    on left: 36 37, on right: 34 53
+simples_expressao (51)
+    on left: 38 39, on right: 35
+relacional (52)
+    on left: 40 41 42 43 44 45, on right: 38
+soma_expressao (53)
+    on left: 46 47 48, on right: 38 39 46 47
+termo (54)
+    on left: 49 50 51, on right: 46 47 48 49 50
+fator (55)
+    on left: 52 53 54 55, on right: 49 50 51
+args (56)
+    on left: 56 57, on right: 55
+arg_lista (57)
+    on left: 58 59, on right: 56 58
+
+
+state 0
+
+    0 $accept: . programa $end
+
+    INT   shift, and go to state 1
+    VOID  shift, and go to state 2
+
+    programa            go to state 3
+    declaracao_lista    go to state 4
+    declaracao          go to state 5
+    var_declaracao      go to state 6
+    tipo_especificador  go to state 7
+    fun_declaracao      go to state 8
+
+
+state 1
+
+    8 tipo_especificador: INT .
+
+    $default  reduce using rule 8 (tipo_especificador)
+
+
+state 2
+
+    9 tipo_especificador: VOID .
+
+    $default  reduce using rule 9 (tipo_especificador)
+
+
+state 3
+
+    0 $accept: programa . $end
+
+    $end  shift, and go to state 9
+
+
+state 4
+
+    1 programa: declaracao_lista .
+    2 declaracao_lista: declaracao_lista . declaracao
+
+    INT   shift, and go to state 1
+    VOID  shift, and go to state 2
+
+    $default  reduce using rule 1 (programa)
+
+    declaracao          go to state 10
+    var_declaracao      go to state 6
+    tipo_especificador  go to state 7
+    fun_declaracao      go to state 8
+
+
+state 5
+
+    3 declaracao_lista: declaracao .
+
+    $default  reduce using rule 3 (declaracao_lista)
+
+
+state 6
+
+    4 declaracao: var_declaracao .
+
+    $default  reduce using rule 4 (declaracao)
+
+
+state 7
+
+    6 var_declaracao: tipo_especificador . ID PEV
+    7               | tipo_especificador . ID ACO NUM FCO PEV
+   10 fun_declaracao: tipo_especificador . ID APR params FPR composto_declaracao
+
+    ID  shift, and go to state 11
+
+
+state 8
+
+    5 declaracao: fun_declaracao .
+
+    $default  reduce using rule 5 (declaracao)
+
+
+state 9
+
+    0 $accept: programa $end .
+
+    $default  accept
+
+
+state 10
+
+    2 declaracao_lista: declaracao_lista declaracao .
+
+    $default  reduce using rule 2 (declaracao_lista)
+
+
+state 11
+
+    6 var_declaracao: tipo_especificador ID . PEV
+    7               | tipo_especificador ID . ACO NUM FCO PEV
+   10 fun_declaracao: tipo_especificador ID . APR params FPR composto_declaracao
+
+    PEV  shift, and go to state 12
+    ACO  shift, and go to state 13
+    APR  shift, and go to state 14
+
+
+state 12
+
+    6 var_declaracao: tipo_especificador ID PEV .
+
+    $default  reduce using rule 6 (var_declaracao)
+
+
+state 13
+
+    7 var_declaracao: tipo_especificador ID ACO . NUM FCO PEV
+
+    NUM  shift, and go to state 15
+
+
+state 14
+
+   10 fun_declaracao: tipo_especificador ID APR . params FPR composto_declaracao
+
+    INT   shift, and go to state 1
+    VOID  shift, and go to state 16
+
+    tipo_especificador  go to state 17
+    params              go to state 18
+    param_lista         go to state 19
+    param               go to state 20
+
+
+state 15
+
+    7 var_declaracao: tipo_especificador ID ACO NUM . FCO PEV
+
+    FCO  shift, and go to state 21
+
+
+state 16
+
+    9 tipo_especificador: VOID .
+   12 params: VOID .
+
+    FPR       reduce using rule 12 (params)
+    $default  reduce using rule 9 (tipo_especificador)
+
+
+state 17
+
+   15 param: tipo_especificador . ID
+   16      | tipo_especificador . ID ACO FCO
+
+    ID  shift, and go to state 22
+
+
+state 18
+
+   10 fun_declaracao: tipo_especificador ID APR params . FPR composto_declaracao
+
+    FPR  shift, and go to state 23
+
+
+state 19
+
+   11 params: param_lista .
+   13 param_lista: param_lista . VIR param
+
+    VIR  shift, and go to state 24
+
+    $default  reduce using rule 11 (params)
+
+
+state 20
+
+   14 param_lista: param .
+
+    $default  reduce using rule 14 (param_lista)
+
+
+state 21
+
+    7 var_declaracao: tipo_especificador ID ACO NUM FCO . PEV
+
+    PEV  shift, and go to state 25
+
+
+state 22
+
+   15 param: tipo_especificador ID .
+   16      | tipo_especificador ID . ACO FCO
+
+    ACO  shift, and go to state 26
+
+    $default  reduce using rule 15 (param)
+
+
+state 23
+
+   10 fun_declaracao: tipo_especificador ID APR params FPR . composto_declaracao
+
+    ACH  shift, and go to state 27
+
+    composto_declaracao  go to state 28
+
+
+state 24
+
+   13 param_lista: param_lista VIR . param
+
+    INT   shift, and go to state 1
+    VOID  shift, and go to state 2
+
+    tipo_especificador  go to state 17
+    param               go to state 29
+
+
+state 25
+
+    7 var_declaracao: tipo_especificador ID ACO NUM FCO PEV .
+
+    $default  reduce using rule 7 (var_declaracao)
+
+
+state 26
+
+   16 param: tipo_especificador ID ACO . FCO
+
+    FCO  shift, and go to state 30
+
+
+state 27
+
+   17 composto_declaracao: ACH . local_declaracoes statement_lista FCH
+
+    $default  reduce using rule 19 (local_declaracoes)
+
+    local_declaracoes  go to state 31
+
+
+state 28
+
+   10 fun_declaracao: tipo_especificador ID APR params FPR composto_declaracao .
+
+    $default  reduce using rule 10 (fun_declaracao)
+
+
+state 29
+
+   13 param_lista: param_lista VIR param .
+
+    $default  reduce using rule 13 (param_lista)
+
+
+state 30
+
+   16 param: tipo_especificador ID ACO FCO .
+
+    $default  reduce using rule 16 (param)
+
+
+state 31
+
+   17 composto_declaracao: ACH local_declaracoes . statement_lista FCH
+   18 local_declaracoes: local_declaracoes . var_declaracao
+
+    INT   shift, and go to state 1
+    VOID  shift, and go to state 2
+
+    $default  reduce using rule 21 (statement_lista)
+
+    var_declaracao      go to state 32
+    tipo_especificador  go to state 33
+    statement_lista     go to state 34
+
+
+state 32
+
+   18 local_declaracoes: local_declaracoes var_declaracao .
+
+    $default  reduce using rule 18 (local_declaracoes)
+
+
+state 33
+
+    6 var_declaracao: tipo_especificador . ID PEV
+    7               | tipo_especificador . ID ACO NUM FCO PEV
+
+    ID  shift, and go to state 35
+
+
+state 34
+
+   17 composto_declaracao: ACH local_declaracoes statement_lista . FCH
+   20 statement_lista: statement_lista . statement
+
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    WHILE   shift, and go to state 38
+    RETURN  shift, and go to state 39
+    PEV     shift, and go to state 40
+    FCH     shift, and go to state 41
+    ACH     shift, and go to state 27
+    APR     shift, and go to state 42
+    IF      shift, and go to state 43
+
+    composto_declaracao   go to state 44
+    statement             go to state 45
+    expressao_declaracao  go to state 46
+    selecao_declaracao    go to state 47
+    iteracao_declaracao   go to state 48
+    retorno_declaracao    go to state 49
+    expressao             go to state 50
+    var                   go to state 51
+    simples_expressao     go to state 52
+    soma_expressao        go to state 53
+    termo                 go to state 54
+    fator                 go to state 55
+
+
+state 35
+
+    6 var_declaracao: tipo_especificador ID . PEV
+    7               | tipo_especificador ID . ACO NUM FCO PEV
+
+    PEV  shift, and go to state 12
+    ACO  shift, and go to state 13
+
+
+state 36
+
+   36 var: ID .
+   37    | ID . ACO expressao FCO
+   55 fator: ID . APR args FPR
+
+    ACO  shift, and go to state 56
+    APR  shift, and go to state 57
+
+    $default  reduce using rule 36 (var)
+
+
+state 37
+
+   52 fator: NUM .
+
+    $default  reduce using rule 52 (fator)
+
+
+state 38
+
+   31 iteracao_declaracao: WHILE . APR expressao FPR statement
+
+    APR  shift, and go to state 58
+
+
+state 39
+
+   32 retorno_declaracao: RETURN . PEV
+   33                   | RETURN . expressao PEV
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    PEV  shift, and go to state 59
+    APR  shift, and go to state 42
+
+    expressao          go to state 60
+    var                go to state 51
+    simples_expressao  go to state 52
+    soma_expressao     go to state 53
+    termo              go to state 54
+    fator              go to state 55
+
+
+state 40
+
+   28 expressao_declaracao: PEV .
+
+    $default  reduce using rule 28 (expressao_declaracao)
+
+
+state 41
+
+   17 composto_declaracao: ACH local_declaracoes statement_lista FCH .
+
+    $default  reduce using rule 17 (composto_declaracao)
+
+
+state 42
+
+   54 fator: APR . expressao FPR
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    expressao          go to state 61
+    var                go to state 51
+    simples_expressao  go to state 52
+    soma_expressao     go to state 53
+    termo              go to state 54
+    fator              go to state 55
+
+
+state 43
+
+   29 selecao_declaracao: IF . APR expressao FPR statement
+   30                   | IF . APR expressao FPR statement ELSE statement
+
+    APR  shift, and go to state 62
+
+
+state 44
+
+   23 statement: composto_declaracao .
+
+    $default  reduce using rule 23 (statement)
+
+
+state 45
+
+   20 statement_lista: statement_lista statement .
+
+    $default  reduce using rule 20 (statement_lista)
+
+
+state 46
+
+   22 statement: expressao_declaracao .
+
+    $default  reduce using rule 22 (statement)
+
+
+state 47
+
+   24 statement: selecao_declaracao .
+
+    $default  reduce using rule 24 (statement)
+
+
+state 48
+
+   25 statement: iteracao_declaracao .
+
+    $default  reduce using rule 25 (statement)
+
+
+state 49
+
+   26 statement: retorno_declaracao .
+
+    $default  reduce using rule 26 (statement)
+
+
+state 50
+
+   27 expressao_declaracao: expressao . PEV
+
+    PEV  shift, and go to state 63
+
+
+state 51
+
+   34 expressao: var . ATR expressao
+   53 fator: var .
+
+    ATR  shift, and go to state 64
+
+    $default  reduce using rule 53 (fator)
+
+
+state 52
+
+   35 expressao: simples_expressao .
+
+    $default  reduce using rule 35 (expressao)
+
+
+state 53
+
+   38 simples_expressao: soma_expressao . relacional soma_expressao
+   39                  | soma_expressao .
+   46 soma_expressao: soma_expressao . SOM termo
+   47               | soma_expressao . SUB termo
+
+    SUB  shift, and go to state 65
+    SOM  shift, and go to state 66
+    DIF  shift, and go to state 67
+    IGU  shift, and go to state 68
+    MAI  shift, and go to state 69
+    MAR  shift, and go to state 70
+    MEI  shift, and go to state 71
+    MEN  shift, and go to state 72
+
+    $default  reduce using rule 39 (simples_expressao)
+
+    relacional  go to state 73
+
+
+state 54
+
+   48 soma_expressao: termo .
+   49 termo: termo . MUL fator
+   50      | termo . DIV fator
+
+    DIV  shift, and go to state 74
+    MUL  shift, and go to state 75
+
+    $default  reduce using rule 48 (soma_expressao)
+
+
+state 55
+
+   51 termo: fator .
+
+    $default  reduce using rule 51 (termo)
+
+
+state 56
+
+   37 var: ID ACO . expressao FCO
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    expressao          go to state 76
+    var                go to state 51
+    simples_expressao  go to state 52
+    soma_expressao     go to state 53
+    termo              go to state 54
+    fator              go to state 55
+
+
+state 57
+
+   55 fator: ID APR . args FPR
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    $default  reduce using rule 57 (args)
+
+    expressao          go to state 77
+    var                go to state 51
+    simples_expressao  go to state 52
+    soma_expressao     go to state 53
+    termo              go to state 54
+    fator              go to state 55
+    args               go to state 78
+    arg_lista          go to state 79
+
+
+state 58
+
+   31 iteracao_declaracao: WHILE APR . expressao FPR statement
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    expressao          go to state 80
+    var                go to state 51
+    simples_expressao  go to state 52
+    soma_expressao     go to state 53
+    termo              go to state 54
+    fator              go to state 55
+
+
+state 59
+
+   32 retorno_declaracao: RETURN PEV .
+
+    $default  reduce using rule 32 (retorno_declaracao)
+
+
+state 60
+
+   33 retorno_declaracao: RETURN expressao . PEV
+
+    PEV  shift, and go to state 81
+
+
+state 61
+
+   54 fator: APR expressao . FPR
+
+    FPR  shift, and go to state 82
+
+
+state 62
+
+   29 selecao_declaracao: IF APR . expressao FPR statement
+   30                   | IF APR . expressao FPR statement ELSE statement
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    expressao          go to state 83
+    var                go to state 51
+    simples_expressao  go to state 52
+    soma_expressao     go to state 53
+    termo              go to state 54
+    fator              go to state 55
+
+
+state 63
+
+   27 expressao_declaracao: expressao PEV .
+
+    $default  reduce using rule 27 (expressao_declaracao)
+
+
+state 64
+
+   34 expressao: var ATR . expressao
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    expressao          go to state 84
+    var                go to state 51
+    simples_expressao  go to state 52
+    soma_expressao     go to state 53
+    termo              go to state 54
+    fator              go to state 55
+
+
+state 65
+
+   47 soma_expressao: soma_expressao SUB . termo
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    var    go to state 85
+    termo  go to state 86
+    fator  go to state 55
+
+
+state 66
+
+   46 soma_expressao: soma_expressao SOM . termo
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    var    go to state 85
+    termo  go to state 87
+    fator  go to state 55
+
+
+state 67
+
+   45 relacional: DIF .
+
+    $default  reduce using rule 45 (relacional)
+
+
+state 68
+
+   44 relacional: IGU .
+
+    $default  reduce using rule 44 (relacional)
+
+
+state 69
+
+   43 relacional: MAI .
+
+    $default  reduce using rule 43 (relacional)
+
+
+state 70
+
+   42 relacional: MAR .
+
+    $default  reduce using rule 42 (relacional)
+
+
+state 71
+
+   41 relacional: MEI .
+
+    $default  reduce using rule 41 (relacional)
+
+
+state 72
+
+   40 relacional: MEN .
+
+    $default  reduce using rule 40 (relacional)
+
+
+state 73
+
+   38 simples_expressao: soma_expressao relacional . soma_expressao
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    var             go to state 85
+    soma_expressao  go to state 88
+    termo           go to state 54
+    fator           go to state 55
+
+
+state 74
+
+   50 termo: termo DIV . fator
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    var    go to state 85
+    fator  go to state 89
+
+
+state 75
+
+   49 termo: termo MUL . fator
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    var    go to state 85
+    fator  go to state 90
+
+
+state 76
+
+   37 var: ID ACO expressao . FCO
+
+    FCO  shift, and go to state 91
+
+
+state 77
+
+   59 arg_lista: expressao .
+
+    $default  reduce using rule 59 (arg_lista)
+
+
+state 78
+
+   55 fator: ID APR args . FPR
+
+    FPR  shift, and go to state 92
+
+
+state 79
+
+   56 args: arg_lista .
+   58 arg_lista: arg_lista . VIR expressao
+
+    VIR  shift, and go to state 93
+
+    $default  reduce using rule 56 (args)
+
+
+state 80
+
+   31 iteracao_declaracao: WHILE APR expressao . FPR statement
+
+    FPR  shift, and go to state 94
+
+
+state 81
+
+   33 retorno_declaracao: RETURN expressao PEV .
+
+    $default  reduce using rule 33 (retorno_declaracao)
+
+
+state 82
+
+   54 fator: APR expressao FPR .
+
+    $default  reduce using rule 54 (fator)
+
+
+state 83
+
+   29 selecao_declaracao: IF APR expressao . FPR statement
+   30                   | IF APR expressao . FPR statement ELSE statement
+
+    FPR  shift, and go to state 95
+
+
+state 84
+
+   34 expressao: var ATR expressao .
+
+    $default  reduce using rule 34 (expressao)
+
+
+state 85
+
+   53 fator: var .
+
+    $default  reduce using rule 53 (fator)
+
+
+state 86
+
+   47 soma_expressao: soma_expressao SUB termo .
+   49 termo: termo . MUL fator
+   50      | termo . DIV fator
+
+    DIV  shift, and go to state 74
+    MUL  shift, and go to state 75
+
+    $default  reduce using rule 47 (soma_expressao)
+
+
+state 87
+
+   46 soma_expressao: soma_expressao SOM termo .
+   49 termo: termo . MUL fator
+   50      | termo . DIV fator
+
+    DIV  shift, and go to state 74
+    MUL  shift, and go to state 75
+
+    $default  reduce using rule 46 (soma_expressao)
+
+
+state 88
+
+   38 simples_expressao: soma_expressao relacional soma_expressao .
+   46 soma_expressao: soma_expressao . SOM termo
+   47               | soma_expressao . SUB termo
+
+    SUB  shift, and go to state 65
+    SOM  shift, and go to state 66
+
+    $default  reduce using rule 38 (simples_expressao)
+
+
+state 89
+
+   50 termo: termo DIV fator .
+
+    $default  reduce using rule 50 (termo)
+
+
+state 90
+
+   49 termo: termo MUL fator .
+
+    $default  reduce using rule 49 (termo)
+
+
+state 91
+
+   37 var: ID ACO expressao FCO .
+
+    $default  reduce using rule 37 (var)
+
+
+state 92
+
+   55 fator: ID APR args FPR .
+
+    $default  reduce using rule 55 (fator)
+
+
+state 93
+
+   58 arg_lista: arg_lista VIR . expressao
+
+    ID   shift, and go to state 36
+    NUM  shift, and go to state 37
+    APR  shift, and go to state 42
+
+    expressao          go to state 96
+    var                go to state 51
+    simples_expressao  go to state 52
+    soma_expressao     go to state 53
+    termo              go to state 54
+    fator              go to state 55
+
+
+state 94
+
+   31 iteracao_declaracao: WHILE APR expressao FPR . statement
+
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    WHILE   shift, and go to state 38
+    RETURN  shift, and go to state 39
+    PEV     shift, and go to state 40
+    ACH     shift, and go to state 27
+    APR     shift, and go to state 42
+    IF      shift, and go to state 43
+
+    composto_declaracao   go to state 44
+    statement             go to state 97
+    expressao_declaracao  go to state 46
+    selecao_declaracao    go to state 47
+    iteracao_declaracao   go to state 48
+    retorno_declaracao    go to state 49
+    expressao             go to state 50
+    var                   go to state 51
+    simples_expressao     go to state 52
+    soma_expressao        go to state 53
+    termo                 go to state 54
+    fator                 go to state 55
+
+
+state 95
+
+   29 selecao_declaracao: IF APR expressao FPR . statement
+   30                   | IF APR expressao FPR . statement ELSE statement
+
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    WHILE   shift, and go to state 38
+    RETURN  shift, and go to state 39
+    PEV     shift, and go to state 40
+    ACH     shift, and go to state 27
+    APR     shift, and go to state 42
+    IF      shift, and go to state 43
+
+    composto_declaracao   go to state 44
+    statement             go to state 98
+    expressao_declaracao  go to state 46
+    selecao_declaracao    go to state 47
+    iteracao_declaracao   go to state 48
+    retorno_declaracao    go to state 49
+    expressao             go to state 50
+    var                   go to state 51
+    simples_expressao     go to state 52
+    soma_expressao        go to state 53
+    termo                 go to state 54
+    fator                 go to state 55
+
+
+state 96
+
+   58 arg_lista: arg_lista VIR expressao .
+
+    $default  reduce using rule 58 (arg_lista)
+
+
+state 97
+
+   31 iteracao_declaracao: WHILE APR expressao FPR statement .
+
+    $default  reduce using rule 31 (iteracao_declaracao)
+
+
+state 98
+
+   29 selecao_declaracao: IF APR expressao FPR statement .
+   30                   | IF APR expressao FPR statement . ELSE statement
+
+    ELSE  shift, and go to state 99
+
+    $default  reduce using rule 29 (selecao_declaracao)
+
+
+state 99
+
+   30 selecao_declaracao: IF APR expressao FPR statement ELSE . statement
+
+    ID      shift, and go to state 36
+    NUM     shift, and go to state 37
+    WHILE   shift, and go to state 38
+    RETURN  shift, and go to state 39
+    PEV     shift, and go to state 40
+    ACH     shift, and go to state 27
+    APR     shift, and go to state 42
+    IF      shift, and go to state 43
+
+    composto_declaracao   go to state 44
+    statement             go to state 100
+    expressao_declaracao  go to state 46
+    selecao_declaracao    go to state 47
+    iteracao_declaracao   go to state 48
+    retorno_declaracao    go to state 49
+    expressao             go to state 50
+    var                   go to state 51
+    simples_expressao     go to state 52
+    soma_expressao        go to state 53
+    termo                 go to state 54
+    fator                 go to state 55
+
+
+state 100
+
+   30 selecao_declaracao: IF APR expressao FPR statement ELSE statement .
+
+    $default  reduce using rule 30 (selecao_declaracao)
