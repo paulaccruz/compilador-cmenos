@@ -4,7 +4,8 @@
 #include <string.h>
 #include "arv.h"
 #include "tabela.h"
-
+#include "quads.h"      // Incluir o cabeçalho das quádruplas
+#include "gen_code.h"   // Incluir o cabeçalho da geração de código
 
 extern int yylex(void);
 extern FILE *yyin;
@@ -28,20 +29,20 @@ char *funcao_at = NULL;
 %union {
     char *string;
     NO *no;
-    char *tipo; 
+    char *tipo;
 }
 
 %token <string> ID
-%token <string> NUM 
+%token <string> NUM
 
-%token  INT VOID WHILE RETURN PEV VIR 
+%token  INT VOID WHILE RETURN PEV VIR INPUT OUTPUT
 
 %type <tipo> tipo_especificador
 
-%type <no> expressao var simples_expressao soma_expressao termo fator 
-%type <no> programa declaracao_lista declaracao var_declaracao fun_declaracao 
-%type <no> params param_lista param composto_declaracao 
-%type <no> local_declaracoes statement_lista statement expressao_declaracao selecao_declaracao iteracao_declaracao 
+%type <no> expressao var simples_expressao soma_expressao termo fator
+%type <no> programa declaracao_lista declaracao var_declaracao fun_declaracao
+%type <no> params param_lista param composto_declaracao
+%type <no> local_declaracoes statement_lista statement expressao_declaracao selecao_declaracao iteracao_declaracao
 %type <no> retorno_declaracao args arg_lista relacional
 
 
@@ -58,28 +59,28 @@ char *funcao_at = NULL;
 
 programa:
     declaracao_lista {
-        $$ = novo("programa", NULL, 1, $1);
+        $$ = novo(PrgK, "programa", NULL, 1, $1);
         raiz = $$;
     }
 ;
 
 declaracao_lista:
     declaracao_lista declaracao {
-        $$ = novo("declaracao_lista", NULL, 2, $1, $2);
+        $$ = novo(PrgK, "declaracao_lista", NULL, 2, $1, $2);
     }
     | declaracao_lista error PEV { yyerrok; $$ = $1; }
     | declaracao_lista error FCH { yyerrok; $$ = $1; }
     | declaracao {
-        $$ = novo("declaracao_lista", "declaracao", 1, $1);
+        $$ = novo(PrgK, "declaracao_lista_single", NULL, 1, $1);
     }
 ;
 
 declaracao:
     var_declaracao {
-        $$ = novo("declaracao", "var", 1, $1);
+        $$ = $1;
     }
     | fun_declaracao {
-        $$ = novo("declaracao", "func", 1, $1);
+        $$ = $1;
     }
 ;
 
@@ -88,47 +89,45 @@ var_declaracao:
         if (busca(T, tm_tab, $2, escopo_at) != -1) {
             erro_semantico("Variavel ja declarada", $2, yylineno);
         } else {
-            add(&T, &tm_tab, $2, "var", $1, yylineno, escopo_at);
+            add(&T, &tm_tab, strdup($2), "var", $1, yylineno, escopo_at);
         }
-
-       $$ = novo("var_declaracao", "var", 2, novo($1,$1,0), novo($2, "id", 0));
-
+        $$ = novo(PrgK, "var_declaracao", $1, 2, novo(IdK, strdup($2), $1, 0), novo(IdK, strdup($2), "id", 0));
     }
     | tipo_especificador ID ACO NUM FCO PEV {
         if (busca(T, tm_tab, $2, escopo_at) != -1) {
             erro_semantico("Array ja declarado", $2, yylineno);
         } else {
-            add(&T, &tm_tab, $2, "array", $1, yylineno, escopo_at);
+            add(&T, &tm_tab, strdup($2), "array", $1, yylineno, escopo_at);
         }
-        $$ = novo("var_declaracao", "array", 3, novo($1,$1,0), novo($2,"id", 0), novo($4, "int", 0));
+        $$ = novo(PrgK, "var_declaracao_array", $1, 3, novo(IdK, strdup($2), $1, 0), novo(IdK, strdup($2), "id", 0), novo(ConstK, strdup($4), "int", 0));
     }
     | tipo_especificador error PEV { yyerrok; }
 ;
 
 tipo_especificador:
-    INT { $$ = "int"; }
-    | VOID { $$ = "void"; }
+    INT { $$ = strdup("int"); }
+    | VOID { $$ = strdup("void"); }
 ;
 
 fun_declaracao:
-    tipo_especificador ID APR { 
+    tipo_especificador ID APR {
+        char *current_func_name = strdup($2);
+        funcao_at = current_func_name;
+        escopo_at = current_func_name;
 
-        funcao_at = $2;
-        escopo_at = $2;
-
-        if (busca(T, tm_tab, $2, "global") != -1) {
-
-            erro_semantico("Funcao ja declarada", $2, yylineno);
+        if (busca(T, tm_tab, current_func_name, "global") != -1) {
+            erro_semantico("Funcao ja declarada", current_func_name, yylineno);
         } else {
-            add(&T, &tm_tab, $2, "func", $1, yylineno, "global");
-
+            add(&T, &tm_tab, current_func_name, "func", $1, yylineno, "global");
         }
     } params FPR composto_declaracao {
-  
-        $$ = novo("fun_declaracao", NULL, 4, novo($1, $1, 0), novo($2, $1, 0), $5, $7);                
+        $$ = novo(FnK, strdup(funcao_at), $1, 2, $5, $7);
 
         escopo_at = "global";
-        funcao_at = NULL;
+        if (funcao_at != NULL) {
+            free(funcao_at);
+            funcao_at = NULL;
+        }
     }
 
     | tipo_especificador ID APR error FPR composto_declaracao { yyerrok; }
@@ -137,22 +136,25 @@ fun_declaracao:
 
 params:
     param_lista {
-        $$ = novo("params", "param_lista", 1, $1);
+        $$ = $1;
     }
     | VOID {
-        $$ = novo("params", NULL, 1, novo("void", "tipo", 0));
+        $$ = novo(PrgK, "void_params", "void", 0);
     }
     | error {yyerrok;}
+    | /* empty */ {
+        $$ = novo(PrgK, "empty_params", NULL, 0);
+    }
 ;
 
 param_lista:
-    param_lista VIR param arg_lista {
-        $$ = novo("param_lista", NULL, 2, $1, $3);
+    param_lista VIR param {
+        $$ = novo(PrgK, "param_list", NULL, 2, $1, $3);
     }
-    | param_lista error VIR { yyerrok; } 
+    | param_lista error VIR { yyerrok; }
     | param_lista error FPR { yyerrok; }
     | param {
-        $$ = novo("param_lista", "param", 1, $1);
+        $$ = $1;
     }
 ;
 
@@ -161,73 +163,73 @@ param:
         if (busca(T, tm_tab, $2, escopo_at) != -1) {
             erro_semantico("Parametro ja declarado", $2, yylineno);
         } else {
-            add(&T, &tm_tab, $2, "parametro", $1, yylineno, escopo_at);
+            add(&T, &tm_tab, strdup($2), "parametro", $1, yylineno, escopo_at);
         }
-        $$ = novo("param", "var", 2, novo($1,$1, 0), novo($2, "id",0));
+        $$ = novo(ParamK, strdup($2), $1, 0);
     }
     | tipo_especificador ID ACO FCO {
         if (busca(T, tm_tab, $2, escopo_at) != -1) {
             erro_semantico("Parametro array ja declarado", $2, yylineno);
         } else {
-            add(&T, &tm_tab, $2, "param_array", $1, yylineno, escopo_at);
+            add(&T, &tm_tab, strdup($2), "param_array", $1, yylineno, escopo_at);
         }
-        $$ = novo("param","array", 2, novo($1,$1, 0), novo($2,"id", 0));
+        $$ = novo(ParamK, strdup($2), $1, 0);
     }
     | tipo_especificador error {yyerrok;}
 ;
 
 composto_declaracao:
     ACH local_declaracoes statement_lista FCH {
-        $$ = novo("composto_declaracao",NULL, 2, $2, $3);
+        $$ = novo(PrgK, "composto_declaracao",NULL, 2, $2, $3);
     }
-    | ACH error FCH { yyerrok; } 
+    | ACH error FCH { yyerrok; }
 ;
 
 local_declaracoes:
     local_declaracoes var_declaracao {
-        $$ = novo("local_declaracoes",NULL, 2, $1, $2);
+        $$ = novo(PrgK, "local_declaracoes",NULL, 2, $1, $2);
     }
     | /* vazio */ {
-        $$ = novo("local_declaracoes","vazio", 0);
+        $$ = novo(PrgK, "empty", NULL, 0);
     }
 ;
 
 statement_lista:
     statement_lista statement {
-        $$ = novo("statement_lista",NULL, 2, $1, $2);
+        $$ = novo(PrgK, "statement_lista",NULL, 2, $1, $2);
     }
-    | statement_lista error PEV { yyerrok; }  // Recupera após ';'
-    | statement_lista error FCH { yyerrok; }  // Recupera após '}'
-    | statement_lista error FPR { yyerrok; }  // Recupera após ')'
+    | statement_lista error PEV { yyerrok; }
+    | statement_lista error FCH { yyerrok; }
+    | statement_lista error FPR { yyerrok; }
     | /* vazio */ {
-        $$ = novo("statement_lista","vazio", 0);
+        $$ = novo(PrgK, "empty", NULL, 0);
     }
 ;
 
 statement:
     expressao_declaracao {
-        $$ = novo("statement","exp", 1, $1);
+        $$ = $1;
     }
     | composto_declaracao {
-        $$ = novo("statement","comp", 1, $1);
+        $$ = $1;
     }
     | selecao_declaracao {
-        $$ = novo("statement","selec", 1, $1);
+        $$ = $1;
     }
     | iteracao_declaracao {
-        $$ = novo("statement","inter", 1, $1);
+        $$ = $1;
     }
     | retorno_declaracao {
-        $$ = novo("statement", "retorno",1, $1);
+        $$ = $1;
     }
 ;
 
 expressao_declaracao:
     expressao PEV {
-        $$ = novo("expressao_declaracao",NULL, 1, $1);
+        $$ = novo(PrgK, "expressao_declaracao",NULL, 1, $1);
     }
     | PEV {
-        $$ = novo("expressao_declaracao",NULL, 0);
+        $$ = novo(PrgK, "empty_expression_statement", NULL, 0);
     }
     | error PEV { yyerrok; }
 ;
@@ -237,7 +239,7 @@ selecao_declaracao:
         if (strcmp($3->tipo, "int") != 0) {
             erro_semantico("Condicao do if deve ser inteira", "", yylineno);
         }
-        $$ = novo("selecao_declaracao", "condicional", 3, novo("if", NULL, 0),  $3, $5);
+        $$ = novo(PrgK, "if_statement", NULL, 2, $3, $5);
     }
     | IF APR error FPR statement { yyerrok; }
     | IF error statement { yyerrok; }
@@ -245,7 +247,7 @@ selecao_declaracao:
         if (strcmp($3->tipo, "int") != 0) {
             erro_semantico("Condicao do if deve ser inteira", "", yylineno);
         }
-        $$ = novo("selecao_declaracao", "condicional", 5,novo("if", NULL, 0), $3,$5,novo("else", NULL, 0), $7);
+        $$ = novo(PrgK, "if_else_statement", NULL, 3, $3, $5, $7);
     }
      | IF APR error FPR statement ELSE statement { yyerrok; }
 ;
@@ -255,7 +257,7 @@ iteracao_declaracao:
         if (strcmp($3->tipo, "int") != 0) {
             erro_semantico("Condicao do while deve ser inteira", "", yylineno);
         }
-        $$ = novo("iteracao_declaracao", "loop", 3, novo("while", NULL, 0), $3, $5);
+        $$ = novo(PrgK, "while_statement", NULL, 2, $3, $5);
     }
     | WHILE APR error FPR statement { yyerrok; }
     | WHILE error statement { yyerrok; }
@@ -263,19 +265,17 @@ iteracao_declaracao:
 
 retorno_declaracao:
     RETURN PEV {
-        if (funcao_at == NULL) {
+        if (funcao_at == NULL || strcmp(funcao_at, "") == 0) {
             erro_semantico("Return fora de funcao", "", yylineno);
         }
         int idx = busca(T, tm_tab, funcao_at, "global");
         if (idx != -1 && strcmp(T[idx].tipo, "void") != 0) {
             erro_semantico("Funcao deve retornar void", "", yylineno);
         }
-        $$ = novo("retorno_declaracao", "void", 1, 
-                 novo("return", NULL, 0) 
-        );
+        $$ = novo(PrgK, "return_void", "void", 0);
     }
     | RETURN expressao PEV {
-        if (funcao_at == NULL) {
+        if (funcao_at == NULL || strcmp(funcao_at, "") == 0) {
             erro_semantico("Return fora de funcao", "", yylineno);
         }
         int idx = busca(T, tm_tab, funcao_at, "global");
@@ -283,8 +283,7 @@ retorno_declaracao:
             erro_semantico("Tipo de retorno incompativel", "", yylineno);
         }
 
-        $$ = novo("retorno_declaracao", $2->tipo, 2,
-                 novo("return", NULL, 0),$2);
+        $$ = novo(PrgK, "return_expr", $2->tipo, 1, $2);
     }
     | RETURN error PEV { yyerrok; }
 ;
@@ -294,34 +293,33 @@ expressao:
         if (strcmp($1->tipo, "void") == 0) {
             erro_semantico("Atribuicao invalida para void", "", yylineno);
         }
-        if (($1->tipo != "erro")&&(strcmp($1->tipo, $3->tipo) != 0)) {
+        if ((strcmp($1->tipo, "erro") != 0)&&(strcmp($1->tipo, $3->tipo) != 0)) {
             erro_semantico("Tipos incompativeis na atribuicao", "", yylineno);
         }
 
-        $$ = novo("expressao", $1->tipo, 2, $1, $3);
+        $$ = novo(PrgK, "assignment", $1->tipo, 2, $1, $3);
     }
-    | simples_expressao { // herda o tipo 
+    | simples_expressao {
         $$ = $1;
     }
-    | var ATR error PEV { yyerrok; } 
+    | var ATR error PEV { yyerrok; }
 ;
 
 var:
     ID {
         int idx = busca(T, tm_tab, $1, escopo_at);
-        char *tipo_var = "erro"; 
+        char *tipo_var = "erro";
 
         if (idx == -1) {
-            idx = busca(T, tm_tab, $1, "global"); 
+            idx = busca(T, tm_tab, $1, "global");
         }
 
         if (idx == -1) {
             erro_semantico("Variavel nao declarada", $1, yylineno);
         } else {
-            tipo_var = T[idx].tipo; 
+            tipo_var = T[idx].tipo;
         }
-
-        $$ = novo("var", tipo_var, 1, novo($1, "id", 0) );
+        $$ = novo(IdK, strdup($1), tipo_var, 0);
     }
     | ID ACO expressao FCO {
         int idx = busca(T, tm_tab, $1, escopo_at);
@@ -342,8 +340,7 @@ var:
             }
             tipo_array = T[idx].tipo;
         }
-
-        $$ = novo("var", tipo_array, 2,novo($1, "id", 0), $3);
+        $$ = novo(IdK, strdup($1), tipo_array, 1, $3);
     }
     | ID ACO error FCO { yyerrok; }
 ;
@@ -353,21 +350,24 @@ simples_expressao:
         if (strcmp($1->tipo, "int") != 0 || strcmp($3->tipo, "int") != 0) {
             erro_semantico("Operandos devem ser inteiros", "", yylineno);
         }
-        $$ = novo("simples_expressao", "int", 3,$1, $2,$3);
+        $$ = novo(PlusK, $2->val, "int", 2, $1, $3); // Usando PlusK para relacionais também
+        // Liberar $2->val pois ele foi strdup'd em 'relacional'
+        free($2->val);
+        free($2); // Liberar o nó temporário para o operador
     }
     | soma_expressao {
-        $$ = $1;  // herda o tipo 
+        $$ = $1;
     }
     | simples_expressao relacional error { yyerrok; }
 ;
 
 relacional:
-    MEN { $$ = novo("<", NULL, 0); }
-    | MEI { $$ = novo("<=", NULL, 0); }
-    | MAR { $$ = novo(">", NULL, 0); }
-    | MAI { $$ = novo(">=", NULL, 0); }
-    | IGU { $$ = novo("==", NULL, 0); }
-    | DIF { $$ = novo("!=", NULL, 0); }
+    MEN { $$ = novo(PrgK, "<", NULL, 0); } // Usando PrgK para o operador, mas o valor é crucial
+    | MEI { $$ = novo(PrgK, "<=", NULL, 0); }
+    | MAR { $$ = novo(PrgK, ">", NULL, 0); }
+    | MAI { $$ = novo(PrgK, ">=", NULL, 0); }
+    | IGU { $$ = novo(PrgK, "==", NULL, 0); }
+    | DIF { $$ = novo(PrgK, "!=", NULL, 0); }
 ;
 
 soma_expressao:
@@ -375,16 +375,16 @@ soma_expressao:
         if (strcmp($1->tipo, "int") != 0 || strcmp($3->tipo, "int") != 0) {
             erro_semantico("Operandos devem ser inteiros", "", yylineno);
         }
-        $$ = novo("soma_expressao", "int", 3, $1, novo("+", NULL, 0), $3);
+        $$ = novo(PlusK, "+", "int", 2, $1, $3);
     }
     | soma_expressao SUB termo {
         if (strcmp($1->tipo, "int") != 0 || strcmp($3->tipo, "int") != 0) {
             erro_semantico("Operandos devem ser inteiros", "", yylineno);
         }
-        $$ = novo("soma_expressao", "int", 3, $1, novo("-", NULL, 0), $3 );
+        $$ = novo(PlusK, "-", "int", 2, $1, $3 );
     }
     | termo {
-        $$ = $1; // herda
+        $$ = $1;
     }
     | soma_expressao SOM error { yyerrok; }
     | soma_expressao SUB error { yyerrok; }
@@ -396,17 +396,17 @@ termo:
             erro_semantico("Operandos devem ser inteiros", "", yylineno);
         }
 
-        $$ = novo("termo", "int", 3, $1, novo("*", NULL, 0), $3);
+        $$ = novo(PlusK, "*", "int", 2, $1, $3);
 
     }
     | termo DIV fator {
         if (strcmp($1->tipo, "int") != 0 || strcmp($3->tipo, "int") != 0) {
             erro_semantico("Operandos devem ser inteiros", "", yylineno);
         }
-        $$ = novo("termo", "int", 3, $1, novo("/", NULL, 0), $3);
+        $$ = novo(PlusK, "/", "int", 2, $1, $3);
     }
     | fator {
-        $$ = $1; // herda
+        $$ = $1;
     }
     | termo MUL error { yyerrok; }
     | termo DIV error { yyerrok; }
@@ -414,7 +414,7 @@ termo:
 
 fator:
     NUM {
-        $$ = novo("NUM", "int", 1, novo($1, "num", 0) );
+        $$ = novo(ConstK, strdup($1), "int", 0);
     }
     | var {
         $$ = $1;
@@ -425,7 +425,7 @@ fator:
     }
     | ID APR args FPR {
         int idx = busca(T, tm_tab, $1, "global");
-        char *tipo_retorno = "erro"; 
+        char *tipo_retorno = "erro";
 
         if (idx == -1) {
             erro_semantico("Funcao nao declarada", $1, yylineno);
@@ -433,10 +433,9 @@ fator:
             erro_semantico("Identificador nao e uma funcao", $1, yylineno);
             tipo_retorno = T[idx].tipo;
         } else {
-            tipo_retorno = T[idx].tipo; // Tipo de retorno da função
+            tipo_retorno = T[idx].tipo;
         }
-
-        $$ = novo("chamada_func", tipo_retorno, 2, novo($1, "id", 0), $3 );
+        $$ = novo(CallK, strdup($1), tipo_retorno, 1, $3);
     }
     | APR error FPR { yyerrok; }
     | ID APR error FPR { yyerrok; }
@@ -444,30 +443,31 @@ fator:
 
 args:
     arg_lista {
-        $$ = novo("args", "lista_args", 1, $1);
+        $$ = novo(PrgK, "args_list", NULL, 1, $1);
     }
     | /* vazio */ {
-        $$ = novo("args", "void", 0);
+        $$ = novo(PrgK, "empty_args", NULL, 0);
     }
 ;
 
 arg_lista:
     arg_lista VIR expressao {
-        $$ = novo("arg_lista", "lista_args", 2, $1, $3);
+        $$ = novo(PrgK, "arg_list", NULL, 2, $1, $3); // Lista de argumentos com mais de um
     }
-        | expressao {
-        $$ = novo("arg_lista", "lista_args", 1, $1);
+    | expressao {
+        $$ = novo(PrgK, "arg_list_single", NULL, 1, $1); // Único argumento
     }
-    | arg_lista error VIR { yyerrok; } 
+    | arg_lista error VIR { yyerrok; }
     | arg_lista error FPR { yyerrok; }
-    | error
-
+    | error { $$ = NULL; }
 ;
 
 %%
 
 int main(int argc, char *argv[]) {
     inicia(&T, &tm_tab);
+    initQuadList(&quadList); // Inicializa a lista de quádruplas
+
     if (argc > 1) {
         FILE *input = fopen(argv[1], "r");
         yyin = input;
@@ -475,8 +475,16 @@ int main(int argc, char *argv[]) {
         yyin = stdin;
     }
     yyparse();
-    imprime(T, tm_tab); 
-    imp_ARV(raiz, 0);
-    free_arv(raiz);
+    imprime(T, tm_tab); // Imprime a tabela de símbolos
+
+    if (raiz != NULL) {
+        imp_ARV(raiz, 0); // Imprime a AST
+        gen_intermediate_code(raiz); // GERA O CÓDIGO INTERMEDIÁRIO
+        printQuads(&quadList); // Imprime as quádruplas geradas
+        free_arv(raiz); // Libera a memória da AST
+    }
+
+    freeQuadList(&quadList); // Libera a memória da lista de quádruplas
+    // TODO: Adicionar free_tabela(T, tm_tab) para liberar a tabela de símbolos e evitar vazamento de memória
     return 0;
 }
