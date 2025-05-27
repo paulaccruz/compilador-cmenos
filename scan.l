@@ -21,6 +21,8 @@ VAZIO [ \s]+
 "else"            { return ELSE; }
 "while"           { return WHILE; }
 "return"          { return RETURN; }
+"input"          { return INPUT; }
+"output"         { return OUTPUT; }
 {LETRA}{LETRA}*   { yylval.string = strdup(yytext); return ID; }
 {DIGITO}{DIGITO}* { yylval.string = strdup(yytext); return NUM; } 
 "+"               { return SOM; }

@@ -76,11 +76,11 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 28 "parser.y"
+#line 29 "parser.y"
 
     char *string;
     NO *no;
-    char *tipo; 
+    char *tipo;
 
 
 
